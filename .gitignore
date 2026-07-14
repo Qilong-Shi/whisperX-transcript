@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+.agents/
+ffmpeg-*/
+output/
+models/
+*.wav
+*.mp3
+*.m4a
+*.mp4
+*.flac
+*.aac
+*.ogg
+*.wma
+.env
