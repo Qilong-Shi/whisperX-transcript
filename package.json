@@ -1,0 +1,11 @@
+{
+  "name": "whisperx-local-ui",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Local browser interface for the existing WhisperX scripts",
+  "scripts": {
+    "start": "node server.js --open",
+    "test": "node --test tests/server.test.js"
+  },
+  "engines": { "node": ">=20" }
+}

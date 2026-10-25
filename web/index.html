@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="local-token" content="__LOCAL_TOKEN__">
+  <title>声笺 · 本地语音转文字</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="声笺首页"><span class="brand-icon" aria-hidden="true">≋</span>声笺<span class="brand-note">WHISPERX STUDIO</span></a>
+    <span class="local-badge"><i></i>本机处理</span>
+  </header>
+  <main>
+    <section class="intro">
+      <p class="eyebrow">把声音，留在文字里</p>
+      <h1>从一段声音，<br>到一份清晰的文字<span>。</span></h1>
+      <p class="subtitle">上传音频或视频，选择输出方式。让访谈、课堂与会议，成为可以阅读的记录。</p>
+      <div class="intro-tags"><span>✦ 本地 WhisperX</span><span>音频 / 视频</span><span>文字 / 字幕</span></div>
+    </section>
+    <div class="workspace">
+      <form id="transcribe-form" class="editor-card">
+        <fieldset id="settings-fields">
+          <section class="upload-section">
+            <div class="section-heading"><h2><span class="step">01</span>添加文件</h2><span>单个文件 · 最大 4 GB</span></div>
+            <input id="file-input" type="file" aria-label="上传音频或视频" tabindex="-1" accept=".mp3,.wav,.m4a,.mp4,.flac,.aac,.ogg,.wma,.mkv,.mov,.webm,.opus,.aiff">
+            <button type="button" id="drop-zone" class="drop-zone">
+              <span class="upload-icon" aria-hidden="true">↑</span>
+              <strong id="upload-title">将音频或视频拖到这里</strong>
+              <span id="upload-description">或点击选择本机文件</span>
+              <span class="file-types">MP3 · WAV · M4A · MP4 · 更多格式</span>
+            </button>
+            <div class="file-summary" id="file-summary" hidden><span class="file-symbol" aria-hidden="true">♫</span><div><strong id="file-name"></strong><span id="file-size"></span></div><button type="button" id="remove-file" aria-label="移除已选文件">×</button></div>
+          </section>
+          <section class="output-section">
+            <div class="section-heading"><h2><span class="step">02</span>设置输出</h2><span>按你的使用场景选择</span></div>
+            <span class="label">输出格式</span>
+            <div class="format-grid" role="radiogroup" aria-label="输出格式">
+              <label class="format-option"><input type="radio" name="format" value="txt"><span><strong>TXT</strong><small>纯文本</small></span></label>
+              <label class="format-option"><input type="radio" name="format" value="srt"><span><strong>SRT</strong><small>视频字幕</small></span></label>
+              <label class="format-option"><input type="radio" name="format" value="vtt"><span><strong>VTT</strong><small>网页字幕</small></span></label>
+              <label class="format-option"><input type="radio" name="format" value="all" checked><span><strong>全部</strong><small>五种格式</small></span></label>
+            </div>
+            <div class="field-row"><div><label class="label" for="output-name">输出文件名</label><input id="output-name" type="text" maxlength="100" placeholder="默认使用原文件名"></div><div><label class="label" for="language">音频语言</label><select id="language"><option value="en">英语</option><option value="zh">中文</option><option value="">自动识别</option><option value="ja">日语</option><option value="ko">韩语</option><option value="fr">法语</option><option value="de">德语</option><option value="es">西班牙语</option></select></div></div>
+            <label class="label" for="output-dir">保存文件夹</label>
+            <div class="folder-field"><input id="output-dir" type="text" placeholder="正在读取默认保存位置…" required><button type="button" id="pick-folder">选择文件夹</button></div>
+            <p class="field-hint">每次任务会创建独立子文件夹，完成后也可以下载结果。</p>
+            <details class="advanced"><summary>高级设置<span>模型与运行设备</span></summary><div class="advanced-fields"><div><label class="label" for="model">识别模型</label><select id="model"><option value="large-v3">large-v3 · 高准确率</option><option value="medium">medium · 平衡</option><option value="small">small · 更轻量</option><option value="base">base</option><option value="tiny">tiny</option><option value="tiny.en">tiny.en · 英语轻量</option></select></div><div><label class="label" for="device">运行设备</label><select id="device"><option value="auto">自动 · 优先 GPU</option><option value="cuda">NVIDIA GPU</option><option value="cpu">CPU · 速度较慢</option></select></div><div><label class="label" for="compute-type">计算精度</label><select id="compute-type"><option value="float16">float16 · 默认</option><option value="int8">int8 · 更省显存</option></select></div><div><label class="label" for="batch-size">批大小</label><input id="batch-size" type="number" value="4" min="1" max="64" required></div></div><p class="field-hint">CPU 模式自动使用 int8。显存不足时，尝试批大小 2、int8 或 medium 模型。</p></details>
+          </section>
+        </fieldset>
+        <div class="form-bottom"><p>文件在本机处理<br><span>首次使用模型时需要联网下载</span></p><button id="start-button" class="primary" type="submit" disabled>开始转录 <span aria-hidden="true">↗</span></button></div>
+        <div id="error-message" class="error-message" role="alert" hidden></div>
+      </form>
+      <aside class="side-column">
+        <section class="status-card">
+          <div class="section-heading"><h2>转录工作台</h2><span class="live-label">LIVE</span></div>
+          <div id="status-visual" class="status-visual" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="status-copy" role="status" aria-live="polite"><h3 id="status-title">准备好，记录下一段声音</h3><p id="status-description">选择一个文件，即可开始转录。</p></div>
+          <progress id="upload-progress" value="0" max="100" hidden aria-label="文件上传进度"></progress>
+          <div class="status-checklist"><div><span id="file-indicator" class="indicator"></span>添加音频或视频<span id="file-state">待选择</span></div><div><span id="environment-indicator" class="indicator"></span>本地转录环境<span id="environment-state">检查中</span></div><div><span id="result-indicator" class="indicator"></span>生成输出文件<span id="result-state">待开始</span></div></div>
+          <div id="results" class="results" hidden><p class="label">转录结果</p><div id="result-files"></div><p id="saved-location" class="field-hint"></p><pre id="text-preview" hidden></pre></div>
+          <details class="logs" id="logs"><summary>查看运行日志</summary><pre id="log-output">尚未开始任务。</pre></details>
+        </section>
+        <section class="tip-card"><span class="tip-icon" aria-hidden="true">✧</span><h3>为每一种记录，找到合适的格式</h3><p>阅读和整理笔记，选择 TXT。<br>为视频添加时间轴字幕，选择 SRT。<br>想保留完整转录数据，选择「全部」。</p><span class="tip-footer">全部包含 TXT / SRT / VTT / TSV / JSON</span></section>
+      </aside>
+    </div>
+    <footer><span>声笺 · LOCAL TRANSCRIPTION</span><span>声音有迹，记录有序。</span></footer>
+  </main>
+  <dialog id="folder-dialog" aria-labelledby="folder-dialog-title">
+    <div class="folder-dialog-header"><h2 id="folder-dialog-title">选择保存文件夹</h2><button type="button" id="close-folder" aria-label="关闭文件夹选择">×</button></div>
+    <p class="field-hint">进入目标文件夹后，点击「使用此文件夹」。</p>
+    <div id="folder-roots" class="folder-roots" aria-label="磁盘"></div>
+    <form id="folder-path-form" class="folder-path-form"><label class="sr-only" for="folder-path">当前文件夹路径</label><input id="folder-path" type="text" placeholder="输入完整文件夹路径"><button type="submit" id="go-folder">前往</button></form>
+    <button type="button" id="folder-parent" class="folder-parent" disabled>↑ 返回上一级</button>
+    <p id="folder-error" class="folder-error" role="alert" hidden></p>
+    <div id="folder-list" class="folder-list" aria-label="子文件夹" aria-busy="false"></div>
+    <div class="folder-dialog-footer"><button type="button" id="cancel-folder">取消</button><button type="button" id="confirm-folder" class="primary" disabled>使用此文件夹</button></div>
+  </dialog>
+</body>
+</html>

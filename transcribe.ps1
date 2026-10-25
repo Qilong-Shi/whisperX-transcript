@@ -9,6 +9,9 @@ param(
 
     [string] $Language = "en",
 
+    [ValidateSet("cuda", "cpu")]
+    [string] $Device = "cuda",
+
     [ValidateRange(1, 64)]
     [int] $BatchSize = 4,
 
@@ -26,6 +29,9 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+if ($Device -eq "cpu" -and $ComputeType -eq "float16") {
+    throw "CPU transcription requires -ComputeType int8."
+}
 $ProjectRoot = $PSScriptRoot
 $DataRoot = if ([string]::IsNullOrWhiteSpace($env:WHISPERX_DATA_ROOT)) {
     "D:\AI\WhisperX"
@@ -97,7 +103,7 @@ $whisperArgs = @(
     "-m", "whisperx"
 ) + $resolvedAudio + @(
     "--model", $Model,
-    "--device", "cuda",
+    "--device", $Device,
     "--compute_type", $ComputeType,
     "--batch_size", $BatchSize,
     "--vad_method", "silero",
